@@ -1,4 +1,3 @@
-sts
 mock
 pytrie
 readline
