@@ -1,0 +1,6 @@
+sts
+mock
+pytrie
+readline
+paramiko
+psutil
