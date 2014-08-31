@@ -15,6 +15,9 @@
 import mock
 import unittest
 
+from sts.entities.base import BiDirectionalLinkAbstractClass
+from sts.entities.base import DirectedLinkAbstractClass
+
 from sts.topology.graph import Graph
 from sts.topology.graph import TopologyGraph
 
@@ -273,6 +276,24 @@ class TopologyGraphTest(unittest.TestCase):
     host.hid = hid
     return host
 
+  def _get_access_link(self, name, host, iface, switch, port):
+    """Helper method to create bidirectional access link"""
+    link = mock.Mock(name=name, spec=BiDirectionalLinkAbstractClass)
+    link.node1 = host
+    link.port1 = iface
+    link.node2 = switch
+    link.port2 = port
+    return link
+
+  def _get_network_link(self, name, switch1, port1, switch2, port2):
+    """Helper method to create uni-directional link between two switches"""
+    link = mock.Mock(name=name, spec=DirectedLinkAbstractClass)
+    link.start_node = switch1
+    link.start_port = port1
+    link.end_node = switch2
+    link.end_port = port2
+    return link
+
   def test_add_host(self):
     # Arrange
     h1 = self._get_host(1, 1)
@@ -375,27 +396,131 @@ class TopologyGraphTest(unittest.TestCase):
   def test_remove_link(self):
     # Arrange
     s1 = self._get_switch(1, 2)
-    s2 = self._get_switch(2, 2)
-    l1 = mock.Mock()
-    l1.start_node = s1
-    l1.start_port = s1.ports[1]
-    l1.end_node = s2
-    l1.end_port = s2.ports[1]
-    l2 = mock.Mock()
-    l2.start_node = s1
-    l2.start_port = s1.ports[2]
-    l2.end_node = s2
-    l2.end_port = s2.ports[2]
+    s2 = self._get_switch(2, 3)
+    h1 = self._get_host(1, 1)
+    l1 = self._get_network_link('NL1', s1, s1.ports[1], s2, s2.ports[1])
+    l2 = self._get_network_link('NL2', s1, s1.ports[2], s2, s2.ports[2])
+    l3 = self._get_access_link('AL1', h1, h1.interfaces[0], s2, s2.ports[3])
     graph = TopologyGraph()
     graph.add_switch(s1)
     graph.add_switch(s2)
+    graph.add_host(h1)
     graph.add_link(l1)
+    graph.add_link(l3, bidir=True)
     # Act
     graph.remove_link(l1)
+    graph.remove_link(l3)
     fail_remove = lambda: graph.remove_link(l2)
     # Assert
     self.assertFalse(graph.has_link(l1))
     self.assertFalse(graph.has_link(l2))
+    self.assertFalse(graph.has_link(l3))
     self.assertIsNone(graph.get_link("s1-1", "s2-1"))
     self.assertIsNone(graph.get_link("s1-2", "s2-2"))
     self.assertRaises(AssertionError, fail_remove)
+
+  def test_get_host_links(self):
+    # Arrange
+    h1 = self._get_host(1, 2)
+    h2 = self._get_host(2, 2)
+    s1 = self._get_switch(1, 3)
+    s2 = self._get_switch(2, 3)
+    l1 = self._get_access_link('AL1', h1, h1.interfaces[0], s1, s1.ports[1])
+    l2 = self._get_access_link('AL2', h1, h1.interfaces[1], s2, s2.ports[1])
+    l3 = self._get_access_link('AL3', h2, h2.interfaces[0], s2, s2.ports[2])
+    l4 = self._get_network_link('NL1', s1, s1.ports[3], s2, s2.ports[3])
+    graph = TopologyGraph()
+    graph.add_switch(s1)
+    graph.add_switch(s2)
+    graph.add_host(h1)
+    graph.add_host(h2)
+    graph.add_link(l1, bidir=True)
+    graph.add_link(l2, bidir=True)
+    graph.add_link(l3, bidir=True)
+    graph.add_link(l4)
+    # Act
+    h1_links = graph.get_host_links(h1)
+    h2_links = graph.get_host_links(h2)
+    # Assert
+    self.assertItemsEqual([l1, l2], set(h1_links))
+    self.assertItemsEqual([l3], set(h2_links))
+
+  def test_get_switches_links(self):
+    # Arrange
+    h1 = self._get_host(1, 2)
+    h2 = self._get_host(2, 2)
+    s1 = self._get_switch(1, 3)
+    s2 = self._get_switch(2, 3)
+    l1 = self._get_access_link('AL1', h1, h1.interfaces[0], s1, s1.ports[1])
+    l2 = self._get_access_link('AL2', h1, h1.interfaces[1], s2, s2.ports[1])
+    l3 = self._get_access_link('AL3', h2, h2.interfaces[0], s2, s2.ports[2])
+    l4 = self._get_network_link('NL1', s1, s1.ports[3], s2, s2.ports[3])
+    graph = TopologyGraph()
+    graph.add_switch(s1)
+    graph.add_switch(s2)
+    graph.add_host(h1)
+    graph.add_host(h2)
+    graph.add_link(l1, bidir=True)
+    graph.add_link(l2, bidir=True)
+    graph.add_link(l3, bidir=True)
+    graph.add_link(l4)
+    # Act
+    s1_links = graph.get_switch_links(s1)
+    s2_links = graph.get_switch_links(s2)
+    # Assert
+    self.assertItemsEqual([l1, l4], set(s1_links))
+    self.assertItemsEqual([l2, l3, l4], set(s2_links))
+
+  def test_links_iter(self):
+    # Arrange
+    h1 = self._get_host(1, 2)
+    h2 = self._get_host(2, 2)
+    s1 = self._get_switch(1, 3)
+    s2 = self._get_switch(2, 3)
+    l1 = self._get_access_link('AL1', h1, h1.interfaces[0], s1, s1.ports[1])
+    l2 = self._get_access_link('AL2', h1, h1.interfaces[1], s2, s2.ports[1])
+    l3 = self._get_access_link('AL3', h2, h2.interfaces[0], s2, s2.ports[2])
+    l4 = self._get_network_link('NL1', s1, s1.ports[3], s2, s2.ports[3])
+    graph = TopologyGraph()
+    graph.add_switch(s1)
+    graph.add_switch(s2)
+    graph.add_host(h1)
+    graph.add_host(h2)
+    graph.add_link(l1, bidir=True)
+    graph.add_link(l2, bidir=True)
+    graph.add_link(l3, bidir=True)
+    graph.add_link(l4)
+    # Act
+    links_iter = list(graph.links_iter(include_attrs=False))
+    links = graph.links
+    # Assert
+    # Count the bidir links as two
+    self.assertEquals(len(links_iter), 3 * 2 + 1)
+    self.assertEquals(len(links), 3 * 2 + 1)
+
+  def test_interfaces_iter(self):
+    # Arrange
+    h1 = self._get_host(1, 2)
+    h2 = self._get_host(2, 1)
+    graph = TopologyGraph()
+    graph.add_host(h1)
+    graph.add_host(h2)
+    # Act
+    ifaces_iter = list(graph.interfaces_iter(include_attrs=False))
+    ifaces = graph.interfaces
+    # Assert
+    self.assertEquals(len(ifaces_iter), 3)
+    self.assertEquals(len(ifaces), 3)
+
+  def test_ports_iter(self):
+    s1 = self._get_switch(1, 3)
+    s2 = self._get_switch(2, 2)
+    graph = TopologyGraph()
+    graph.add_switch(s1)
+    graph.add_switch(s2)
+    # Act
+    ports_iter = list(graph.ports_iter(include_attrs=False))
+    ports = graph.ports
+    # Assert
+    self.assertEquals(len(ports_iter), 5)
+    self.assertEquals(len(ports), 5)
