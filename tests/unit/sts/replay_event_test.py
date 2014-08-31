@@ -51,7 +51,6 @@ class CheckInvariantsTest(unittest.TestCase):
     logical_round = 1
     event_time = [1, 1]
     simulation = mock.Mock(name='Simulation')
-    simulation = mock.Mock(name='Simulation')
     simulation.fail_to_interactive = False
     simulation.fail_to_interactive_on_persistent_violations = False
     simulation.violation_tracker.persistent_violations = []
