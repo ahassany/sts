@@ -867,7 +867,7 @@ class CheckInvariants(InputEvent):
       if (hasattr(simulation, "fail_to_interactive_on_persistent_violations")
           and simulation.fail_to_interactive_on_persistent_violations):
         raise KeyboardInterrupt("fail to interactive on persistent violation")
-      return False
+      return ret_value
     return ret_value
 
   def to_json(self):
