@@ -266,6 +266,7 @@ class TopologyGraphTest(unittest.TestCase):
       iface = mock.Mock(name=iface_name)
       iface.port_no = i
       iface.name = iface_name
+      interfaces.append(iface)
     host = mock.Mock(name=name)
     host.interfaces = interfaces
     host.name = name
