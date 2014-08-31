@@ -214,3 +214,49 @@ class ConnectivityTrackerTest(unittest.TestCase):
     # Assert
     self.assertFalse(disconnected_removed1)
     self.assertTrue(disconnected_removed2)
+
+  def test_remove_connected_hosts(self):
+    """Add connectivity policies"""
+    # Arrange
+    topo = self.get_topology()
+    h1 = topo.hosts_manager.get_host('h1')
+    h2 = topo.hosts_manager.get_host('h2')
+    h1_eth1 = h1.interfaces[0]
+    h2_eth1 = h2.interfaces[0]
+    tracker1 = ConnectivityTracker(default_connected=False)
+    tracker2 = ConnectivityTracker(default_connected=True)
+    tracker1.add_connected_hosts(h1, h1_eth1, h2, h2_eth1, 1)
+    tracker2.add_connected_hosts(h1, h1_eth1, h2, h2_eth1, 1)
+    # Act
+    tracker1.remove_connected_hosts(h1, h1_eth1, h2, h2_eth1, remove_policies=False)
+    tracker2.remove_connected_hosts(h1, h1_eth1, h2, h2_eth1, remove_policies=True)
+    connected1 = tracker1.is_connected(h1, h2)
+    connected2 = tracker2.is_connected(h1, h2)
+    # Assert
+    self.assertFalse(connected1)
+    self.assertTrue(connected2)
+    self.assertTrue(1 in tracker1.policies)
+    self.assertFalse(1 in tracker2.policies)
+
+  def test_add_disconnected_hosts(self):
+    """Add dis-connectivity policies"""
+    # Arrange
+    topo = self.get_topology()
+    h1 = topo.hosts_manager.get_host('h1')
+    h2 = topo.hosts_manager.get_host('h2')
+    h1_eth1 = h1.interfaces[0]
+    h2_eth1 = h2.interfaces[0]
+    tracker1 = ConnectivityTracker(default_connected=False)
+    tracker2 = ConnectivityTracker(default_connected=True)
+    tracker1.add_disconnected_hosts(h1, h1_eth1, h2, h2_eth1, 1)
+    tracker2.add_disconnected_hosts(h1, h1_eth1, h2, h2_eth1, 1)
+    # Act
+    tracker1.remove_disconnected_hosts(h1, h1_eth1, h2, h2_eth1, remove_policies=False)
+    tracker2.remove_disconnected_hosts(h1, h1_eth1, h2, h2_eth1, remove_policies=True)
+    connected1 = tracker1.is_connected(h1, h2)
+    connected2 = tracker2.is_connected(h1, h2)
+    # Assert
+    self.assertFalse(connected1)
+    self.assertFalse(connected1)
+    self.assertTrue(1 in tracker1.policies)
+    self.assertFalse(1 in tracker2.policies)

@@ -44,10 +44,10 @@ class ConnectivityTracker(object):
     default policy.
     """
     # Check if explicitly connected by a policy
-    if self.connected_pairs.get(src_host, {}).get(dst_host, None):
+    if len(self.connected_pairs.get(src_host, {}).get(dst_host, [])) > 0:
       return True
     # Check if explicitly disconnected by a policy
-    elif self.disconnected_pairs.get(src_host, {}).get(dst_host, None):
+    elif len(self.disconnected_pairs.get(src_host, {}).get(dst_host, [])) > 0:
       return False
     # Default connected state
     else:
@@ -110,14 +110,15 @@ class ConnectivityTracker(object):
     info = self.connected_pairs[src_host][dst_host]
     for tmp in info:
     # To deal with wildcarding interfaces
-      tmp_src = src_interface if src_interface is None else tmp.src_interface
-      tmp_dst = dst_interface if dst_interface is None else tmp.dst_interface
+      tmp_src = src_interface if src_interface is None else tmp[1]
+      tmp_dst = dst_interface if dst_interface is None else tmp[2]
       if not (tmp_src == src_interface and tmp_dst == dst_interface):
         continue
       if remove_policies:
         policy = tmp[0]
         self.remove_policy(policy)
-      self.connected_pairs[src_host][dst_host].remove(tmp)
+      if tmp in self.connected_pairs[src_host][dst_host]:
+        self.connected_pairs[src_host][dst_host].remove(tmp)
 
   def remove_disconnected_hosts(self, src_host, src_interface, dst_host,
                              dst_interface, remove_policies=True):
@@ -130,11 +131,12 @@ class ConnectivityTracker(object):
     info = self.disconnected_pairs[src_host][dst_host]
     for tmp in info:
       # To deal with wildcarding interfaces
-      tmp_src = src_interface if src_interface is None else tmp.src_interface
-      tmp_dst = dst_interface if dst_interface is None else tmp.dst_interface
+      tmp_src = src_interface if src_interface is None else tmp[1]
+      tmp_dst = dst_interface if dst_interface is None else tmp[2]
       if not (tmp_src == src_interface and tmp_dst == dst_interface):
         continue
       if remove_policies:
         policy = tmp[0]
         self.remove_policy(policy)
-      self.disconnected_pairs[src_host][dst_host].remove(tmp)
+      if tmp in self.disconnected_pairs[src_host][dst_host]:
+        self.disconnected_pairs[src_host][dst_host].remove(tmp)
