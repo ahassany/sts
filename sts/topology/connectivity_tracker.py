@@ -22,9 +22,11 @@ from collections import defaultdict
 from collections import namedtuple
 
 
+# A policy connecting two hosts.
+# It lists the source host and interface and the destination host and interface
 ConnectedHosts = namedtuple('ConnectedHosts',
                             ['src_host', 'src_interface', 'dst_host',
-                            'dst_interface'])
+                             'dst_interface'])
 
 
 class ConnectivityTracker(object):
@@ -75,7 +77,7 @@ class ConnectivityTracker(object):
     self.log.info("Adding %s<->%s to the set of connected hosts",
                   src_host, dst_host)
     self.disconnected_pairs[src_host][dst_host].append(
-      (policy, src_interface, dst_interface))
+        (policy, src_interface, dst_interface))
     self.policies[policy] = ConnectedHosts(src_host=src_host,
                                            src_interface=src_interface,
                                            dst_host=dst_host,
@@ -109,7 +111,7 @@ class ConnectivityTracker(object):
                   src_host, dst_host)
     info = self.connected_pairs[src_host][dst_host]
     for tmp in info:
-    # To deal with wildcarding interfaces
+      # To deal with wildcarding interfaces
       tmp_src = src_interface if src_interface is None else tmp[1]
       tmp_dst = dst_interface if dst_interface is None else tmp[2]
       if not (tmp_src == src_interface and tmp_dst == dst_interface):
@@ -117,11 +119,12 @@ class ConnectivityTracker(object):
       if remove_policies:
         policy = tmp[0]
         self.remove_policy(policy)
+      # A catch if remove policy set to False
       if tmp in self.connected_pairs[src_host][dst_host]:
         self.connected_pairs[src_host][dst_host].remove(tmp)
 
   def remove_disconnected_hosts(self, src_host, src_interface, dst_host,
-                             dst_interface, remove_policies=True):
+                                dst_interface, remove_policies=True):
     """
     Removes host pairs from the list of disconnected hosts.
     If remove_policies is True all related policies will be removed as well.
@@ -138,5 +141,6 @@ class ConnectivityTracker(object):
       if remove_policies:
         policy = tmp[0]
         self.remove_policy(policy)
+      # A catch if remove policy set to False
       if tmp in self.disconnected_pairs[src_host][dst_host]:
         self.disconnected_pairs[src_host][dst_host].remove(tmp)
