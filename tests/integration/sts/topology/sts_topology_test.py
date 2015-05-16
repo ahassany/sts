@@ -20,7 +20,7 @@ import unittest
 
 from pox.lib.ioworker.io_worker import RecocoIOLoop
 
-from sts.topology.sts_topology import Topology
+from sts.topology.sts_topology import MeshTopology
 
 
 class TopologyTest(unittest.TestCase):
@@ -29,7 +29,7 @@ class TopologyTest(unittest.TestCase):
 
   def test_create_switch(self):
     # Arrange
-    topo = Topology()
+    topo = MeshTopology(create_connection=TopologyTest._io_ctor, num_switches=0)
     s1_dpid = 1
     s2_dpid = 2
     s1_ports = 3
@@ -42,5 +42,5 @@ class TopologyTest(unittest.TestCase):
     self.assertEqual(s1.dpid, s1_dpid)
     self.assertEqual(len(s2.ports), s2_ports)
     self.assertEqual(s2.dpid, s2_dpid)
-    self.assertItemsEqual([s1, s2], topo.switches)
+    self.assertItemsEqual([s1, s2], topo.graph.switches)
     self.assertNotEqual(s2.ports[1].hw_addr, s1.ports[1].hw_addr)

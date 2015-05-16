@@ -35,13 +35,13 @@ class GraphTest(unittest.TestCase):
     graph1 = Graph()
     graph2 = Graph(vertices, edges)
     # Assert
-    self.assertEquals(len(graph1.vertices), 0)
+    self.assertEquals(len(graph1.nodes), 0)
     self.assertEquals(len(graph1.edges), 0)
-    self.assertEquals(len(graph2.vertices), len(vertices))
+    self.assertEquals(len(graph2.nodes), len(vertices))
     self.assertEquals(len(graph2.edges), 3)
-    self.assertEquals(graph2.vertices[1], {})
-    self.assertEquals(graph2.vertices[2], vertices[2])
-    self.assertEquals(graph2.vertices[3], {})
+    self.assertEquals(graph2.nodes[1], {})
+    self.assertEquals(graph2.nodes[2], vertices[2])
+    self.assertEquals(graph2.nodes[3], {})
     self.assertEquals(graph2.edges[0], (1, 1, {}))
     self.assertEquals(graph2.edges[1], (1, 2, edges[1][2]))
     self.assertEquals(graph2.edges[2], (3, 1, {}))
@@ -52,22 +52,22 @@ class GraphTest(unittest.TestCase):
     edges = {1: {1: {}, 2: {'a': 'b'}}, 3: {1: None}}
     # Act
     graph = Graph(vertices, edges)
-    graph.add_vertex(4, c='d')
-    graph.add_vertex(5)
+    graph.add_node(4, c='d')
+    graph.add_node(5)
     # Assert
-    self.assertEquals(len(graph.vertices), len(vertices) + 2)
+    self.assertEquals(len(graph.nodes), len(vertices) + 2)
     self.assertEquals(len(graph.edges), 3)
-    self.assertEquals(graph.vertices[1], {})
-    self.assertEquals(graph.vertices[2], vertices[2])
-    self.assertEquals(graph.vertices[3], {})
-    self.assertEquals(graph.vertices[4], {'c': 'd'})
-    self.assertEquals(graph.vertices[5], {})
-    self.assertTrue(graph.has_vertex(1))
-    self.assertTrue(graph.has_vertex(2))
-    self.assertTrue(graph.has_vertex(3))
-    self.assertTrue(graph.has_vertex(4))
-    self.assertTrue(graph.has_vertex(5))
-    self.assertFalse(graph.has_vertex(6))
+    self.assertEquals(graph.nodes[1], {})
+    self.assertEquals(graph.nodes[2], vertices[2])
+    self.assertEquals(graph.nodes[3], {})
+    self.assertEquals(graph.nodes[4], {'c': 'd'})
+    self.assertEquals(graph.nodes[5], {})
+    self.assertTrue(graph.has_node(1))
+    self.assertTrue(graph.has_node(2))
+    self.assertTrue(graph.has_node(3))
+    self.assertTrue(graph.has_node(4))
+    self.assertTrue(graph.has_node(5))
+    self.assertFalse(graph.has_node(6))
 
   def test_has_vertex(self):
     # Arrange
@@ -75,23 +75,38 @@ class GraphTest(unittest.TestCase):
     edges = {1: {1: {}, 2: {'a': 'b'}}, 3: {1: None}}
     # Act
     graph = Graph(vertices, edges)
-    graph.add_vertex(4, c='d')
-    graph.add_vertex(5)
+    graph.add_node(4, c='d')
+    graph.add_node(5)
     # Assert
-    self.assertTrue(graph.has_vertex(1))
-    self.assertTrue(graph.has_vertex(2))
-    self.assertTrue(graph.has_vertex(3))
-    self.assertTrue(graph.has_vertex(4))
-    self.assertTrue(graph.has_vertex(5))
-    self.assertFalse(graph.has_vertex(6))
+    self.assertTrue(graph.has_node(1))
+    self.assertTrue(graph.has_node(2))
+    self.assertTrue(graph.has_node(3))
+    self.assertTrue(graph.has_node(4))
+    self.assertTrue(graph.has_node(5))
+    self.assertFalse(graph.has_node(6))
+
+  def test_get_vertex(self):
+     # Arrange
+    vertices = {1: None, 2: {'a': 'b'}, 3: None}
+    edges = {1: {1: {}, 2: {'a': 'b'}}, 3: {1: None}}
+    # Act
+    graph = Graph(vertices, edges)
+    graph.add_node(4, c='d')
+    graph.add_node(5)
+    # Assert
+    self.assertEquals(graph.get_node(1), {})
+    self.assertEquals(graph.get_node(2), {'a': 'b'})
+    self.assertEquals(graph.get_node(3), {})
+    self.assertEquals(graph.get_node(4), {'c': 'd'})
+    self.assertEquals(graph.get_node(5), {})
 
   def test_edges_iter(self):
     # Arrange
     edges = {1: {1: {}, 2: {'a': 'b'}}, 3: {1: {}}}
-    graph = Graph(vertices=None, edges=edges)
+    graph = Graph(nodes=None, edges=edges)
     # Act
-    edges1 = list(graph.edges_iter(include_attrs=False))
-    edges2 = list(graph.edges_iter(include_attrs=True))
+    edges1 = list(graph.edges_iter(data=False))
+    edges2 = list(graph.edges_iter(data=True))
     # Assert
     for edge in edges1:
       self.assertEquals(len(edge), 2)
@@ -105,22 +120,22 @@ class GraphTest(unittest.TestCase):
   def test_edges_iter_with_check(self):
     # Arrange
     edges = {1: {1: {}, 2: {'a': 'b'}}, 3: {1: {}}}
-    graph = Graph(vertices=None, edges=edges)
+    graph = Graph(nodes=None, edges=edges)
     check = lambda v1, v2, attrs: attrs.get('a', None) is not None
     # Act
-    edges1 = list(graph.edges_iter_with_check(check, include_attrs=False))
-    edges2 = list(graph.edges_iter_with_check(check, include_attrs=True))
+    edges1 = list(graph.edges_iter_with_check(check, data=False))
+    edges2 = list(graph.edges_iter_with_check(check, data=True))
     # Assert
     self.assertEquals(edges1, [(1, 2)])
     self.assertEquals(edges2, [(1, 2, {'a': 'b'})])
 
-  def test_vertices_iter(self):
+  def test_nodes_iter(self):
     # Arrange
     vertices = {1: None, 2: {'a': 'b'}, 3: None, 4: None, 5: None}
     graph = Graph(vertices)
     # Act
-    vertices1 = list(graph.vertices_iter(include_attrs=False))
-    vertices2 = list(graph.vertices_iter(include_attrs=True))
+    vertices1 = list(graph.nodes_iter(data=False))
+    vertices2 = list(graph.nodes_iter(data=True))
     # Assert
     for vertex in vertices1:
       self.assertTrue(vertex in vertices)
@@ -128,14 +143,14 @@ class GraphTest(unittest.TestCase):
       value = value if value != {} else None
       self.assertEquals(vertices[vertex], value)
 
-  def test_vertices_iter_with_check(self):
+  def test_nodes_iter_with_check(self):
     # Arrange
     vertices = {1: None, 2: {'a': 'b'}, 3: None, 4: None, 5: None}
     graph = Graph(vertices)
     check = lambda v, attrs: attrs.get('a', None) is not None
     # Act
-    vertices1 = list(graph.vertices_iter_with_check(check, include_attrs=False))
-    vertices2 = list(graph.vertices_iter_with_check(check, include_attrs=True))
+    vertices1 = list(graph.nodes_iter_with_check(check, data=False))
+    vertices2 = list(graph.nodes_iter_with_check(check, data=True))
     # Assert
     self.assertEquals(vertices1, [2])
     self.assertEquals(vertices2, [(2, vertices[2])])
@@ -151,12 +166,12 @@ class GraphTest(unittest.TestCase):
     graph.add_edge(1, 3)
     graph.add_edge(1, 4, c='d')
     # Assert
-    self.assertEquals(len(graph.vertices), len(vertices) + 1)
+    self.assertEquals(len(graph.nodes), len(vertices) + 1)
     self.assertEquals(len(graph.edges), 3 + 2)
-    self.assertEquals(graph.vertices[1], {})
-    self.assertEquals(graph.vertices[2], vertices[2])
-    self.assertEquals(graph.vertices[3], {})
-    self.assertEquals(graph.vertices[4], {})
+    self.assertEquals(graph.nodes[1], {})
+    self.assertEquals(graph.nodes[2], vertices[2])
+    self.assertEquals(graph.nodes[3], {})
+    self.assertEquals(graph.nodes[4], {})
     self.assertTrue(graph.has_edge(1, 2))
     self.assertFalse(graph.has_edge(2, 4))
     self.assertFalse(graph.has_edge(9, 6))
@@ -182,29 +197,29 @@ class GraphTest(unittest.TestCase):
     # Arrange
     graph = Graph()
     v1, v2, v3, v4, v5, v6, v7 = 1, 2, 3, 4, 5, 6, 7
-    graph.add_vertex(v1)
-    graph.add_vertex(v2)
-    graph.add_vertex(v3)
-    graph.add_vertex(v4)
-    graph.add_vertex(v5)
-    graph.add_vertex(v6)
-    graph.add_vertex(v7)
+    graph.add_node(v1)
+    graph.add_node(v2)
+    graph.add_node(v3)
+    graph.add_node(v4)
+    graph.add_node(v5)
+    graph.add_node(v6)
+    graph.add_node(v7)
     e1 = graph.add_edge(v1, v2)
     e2 = graph.add_edge(v3, v4)
     e3 = graph.add_edge(v3, v5)
     # Act
-    graph.remove_vertex(v1, remove_edges=True)
-    graph.remove_vertex(v6, remove_edges=False)
-    self.assertRaises(AssertionError, graph.remove_vertex, v3, remove_edges=False)
-    graph.remove_vertex(v3, remove_edges=True)
+    graph.remove_node(v1, remove_edges=True)
+    graph.remove_node(v6, remove_edges=False)
+    self.assertRaises(AssertionError, graph.remove_node, v3, remove_edges=False)
+    graph.remove_node(v3, remove_edges=True)
     # Assert
-    self.assertFalse(graph.has_vertex(v1))
-    self.assertTrue(graph.has_vertex(v2))
-    self.assertFalse(graph.has_vertex(v3))
-    self.assertTrue(graph.has_vertex(v4))
-    self.assertTrue(graph.has_vertex(v5))
-    self.assertFalse(graph.has_vertex(v6))
-    self.assertTrue(graph.has_vertex(v7))
+    self.assertFalse(graph.has_node(v1))
+    self.assertTrue(graph.has_node(v2))
+    self.assertFalse(graph.has_node(v3))
+    self.assertTrue(graph.has_node(v4))
+    self.assertTrue(graph.has_node(v5))
+    self.assertFalse(graph.has_node(v6))
+    self.assertTrue(graph.has_node(v7))
     self.assertFalse(graph.has_edge(*e1))
     self.assertFalse(graph.has_edge(*e2))
     self.assertFalse(graph.has_edge(*e3))
@@ -217,9 +232,9 @@ class GraphTest(unittest.TestCase):
     e2 = g.add_edge(v2, v3)
     e3 = g.add_edge(v2, v4)
     # Act
-    v1_src = g.edges_src(v1)
-    v2_src = g.edges_src(v2)
-    v3_src = g.edges_src(v3)
+    v1_src = g.out_edges(v1)
+    v2_src = g.out_edges(v2)
+    v3_src = g.out_edges(v3)
     # Assert
     self.assertItemsEqual([e1], v1_src)
     self.assertItemsEqual([e2, e3], v2_src)
@@ -232,12 +247,12 @@ class GraphTest(unittest.TestCase):
     e1 = g.add_edge(v1, v2)
     e2 = g.add_edge(v1, v3)
     e3 = g.add_edge(v2, v3)
-    g.add_vertex(v4)
+    g.add_node(v4)
     # Act
-    v1_dst = g.edges_dst(v1)
-    v2_dst = g.edges_dst(v2)
-    v3_dst = g.edges_dst(v3)
-    v4_dst = g.edges_dst(v4)
+    v1_dst = g.in_edges(v1)
+    v2_dst = g.in_edges(v2)
+    v3_dst = g.in_edges(v3)
+    v4_dst = g.in_edges(v4)
     # Assert
     self.assertItemsEqual([], v1_dst)
     self.assertItemsEqual([e1], v2_dst)
@@ -294,6 +309,27 @@ class TopologyGraphTest(unittest.TestCase):
     link.end_port = port2
     return link
 
+  def test_init(self):
+    # Arrange
+    h1 = self._get_host(1, 1)
+    h2 = self._get_host(2, 1)
+    s1 = self._get_switch(3, 2)
+    s2 = self._get_switch(4, 2)
+    l1 = self._get_access_link('l1', h1, h1.interfaces[0], s1, s1.ports[1])
+    l2 = self._get_network_link('l1', s1, s1.ports[2], s2, s2.ports[1])
+    l3 = self._get_access_link('l3', h2, h2.interfaces[0], s2, s2.ports[2])
+    hosts = [h1, h2]
+    switches = [s1, s2]
+    links = [l1, l2, l3]
+    # Act
+    graph = TopologyGraph(hosts, switches, links)
+    # Assert
+    self.assertItemsEqual([h1.name, h2.name], list(graph.hosts_iter(False)))
+    self.assertItemsEqual([s1.name, s2.name], list(graph.switches_iter(False)))
+    self.assertTrue(graph.has_link(l1))
+    self.assertTrue(graph.has_link(l2))
+    self.assertTrue(graph.has_link(l3))
+
   def test_add_host(self):
     # Arrange
     h1 = self._get_host(1, 1)
@@ -342,6 +378,16 @@ class TopologyGraphTest(unittest.TestCase):
     self.assertTrue(graph.has_switch(s1.name))
     self.assertTrue(graph.has_switch(s2.name))
     self.assertFalse(graph.has_switch(s3.name))
+
+  def test_get_switch(self):
+    # Arrange
+    s1 = self._get_switch(1, 1)
+    graph = TopologyGraph()
+    graph.add_switch(s1)
+    # Act
+    sw = graph.get_switch('s1')
+    # Assert
+    self.assertEquals(s1, sw)
 
   def test_remove_switch(self):
     # Arrange
@@ -491,7 +537,7 @@ class TopologyGraphTest(unittest.TestCase):
     graph.add_link(l3, bidir=True)
     graph.add_link(l4)
     # Act
-    links_iter = list(graph.links_iter(include_attrs=False))
+    links_iter = list(graph.links_iter(data=False))
     links = graph.links
     # Assert
     # Count the bidir links as two
@@ -506,7 +552,7 @@ class TopologyGraphTest(unittest.TestCase):
     graph.add_host(h1)
     graph.add_host(h2)
     # Act
-    ifaces_iter = list(graph.interfaces_iter(include_attrs=False))
+    ifaces_iter = list(graph.interfaces_iter(data=False))
     ifaces = graph.interfaces
     # Assert
     self.assertEquals(len(ifaces_iter), 3)
@@ -519,7 +565,7 @@ class TopologyGraphTest(unittest.TestCase):
     graph.add_switch(s1)
     graph.add_switch(s2)
     # Act
-    ports_iter = list(graph.ports_iter(include_attrs=False))
+    ports_iter = list(graph.ports_iter(data=False))
     ports = graph.ports
     # Assert
     self.assertEquals(len(ports_iter), 5)
